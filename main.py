@@ -5,6 +5,9 @@ import os
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+import pandas as pd
+
+FILENAME = "data.csv"
 
 
 def requests_retry_session(
@@ -41,6 +44,9 @@ for username in usernames:
     r.raise_for_status()
     current = r.json()
 
+    if current["parameters"]["campaign_type"] != "per_month":
+        raise ValueError("Campaign is not per month")
+
     data.append(
         {
             "date": str(datetime.date.today()),
@@ -58,8 +64,15 @@ for username in usernames:
         }
     )
 
-with open("data.csv", "a") as f:
+with open(FILENAME, "a") as f:
     writer = csv.DictWriter(f, data[0].keys(), lineterminator="\n")
     if f.tell() == 0:
         writer.writeheader()
     writer.writerows(data)
+
+csv = pd.read_csv(FILENAME, parse_dates=["date"])
+
+csv.drop_duplicates(subset=["date", "slug"], keep="last", inplace=True)
+csv.sort_values(by=["date", "slug"], inplace=True)
+
+csv.to_csv(FILENAME, index=False)
