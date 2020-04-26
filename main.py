@@ -30,6 +30,11 @@ def requests_retry_session(
     return session
 
 
+def extract_url(links, platform):
+    urls = [l["value"] for l in links if l["code"] == platform]
+    return "|".join([u.replace("http://", "https://") for u in urls])
+
+
 usernames = []
 with open("usernames.csv") as f:
     reader = csv.DictReader(f)
@@ -51,14 +56,11 @@ for username in usernames:
         {
             "date": str(datetime.date.today()),
             "slug": current["slug"],
-            "username": current["creator"]["pseudo"],
+            "name": current["name"],
+            "creator_pseudo": current["creator"]["pseudo"],
             "categories": "|".join([e["name"] for e in current["categories"]]),
-            "youtube_url": "".join(
-                [e["value"] for e in current["links"] if e["code"] == "youtube"]
-            ),
-            "twitter_url": "".join(
-                [e["value"] for e in current["links"] if e["code"] == "twitter"]
-            ),
+            "youtube_url": extract_url(current["links"], "youtube"),
+            "twitter_url": extract_url(current["links"], "twitter"),
             "tip_amount": int(current["parameters"]["tipperAmount"]),
             "tip_number": int(current["parameters"]["tipperNumber"]),
         }
