@@ -1,6 +1,7 @@
 name: Update new data
 
 on:
+  push:
   schedule:
     - cron: "30 14,18 * * *"
 
@@ -45,6 +46,4 @@ jobs:
         git add .
         git commit -m "Add daily data"
     - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: git push origin master
